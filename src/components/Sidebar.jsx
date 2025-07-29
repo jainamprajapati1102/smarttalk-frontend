@@ -6,9 +6,7 @@ import placeholderImg from "../assets/placeholder.png";
 import { useChat } from "../context/SelectedUserContext";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
-import {
-  MdExpandMore,
-} from "react-icons/md";
+import { MdExpandMore } from "react-icons/md";
 import DropdownMenu from "./DropdownMenu";
 
 const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
@@ -144,7 +142,7 @@ const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
             </div>
 
             {/* Dropdown Icon */}
-            <MdExpandMore 
+            <MdExpandMore
               className="text-xl ml-2 cursor-pointer hover:text-gray-600"
               onClick={(e) => handleDropdownClick(e, index)}
             />
