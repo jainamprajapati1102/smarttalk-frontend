@@ -7,7 +7,7 @@ import { useChat } from "../context/SelectedUserContext";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import { MdExpandMore } from "react-icons/md";
-import DropdownMenu from "./DropdownMenu";
+import DropdownMenu from "./DropDownMenu";
 
 const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
   const tabs = ["All", "Unread", "Favorites", "Groups"];
