@@ -56,7 +56,7 @@ const Header = () => {
   return (
     <div className="flex justify-between items-center text-gray-600 p-1">
       {/* Left side: Title */}
-      <h2 className="text-lg font-semibold text-green-600">WhatsApp</h2>
+      <h2 className="text-lg font-semibold text-green-600">SmartTalks</h2>
 
       {/* Right side: Add icon and 3-dot menu */}
       <div className="flex items-center gap-2 relative">

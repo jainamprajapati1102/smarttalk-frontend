@@ -8,7 +8,7 @@ const Login = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-  const { setUser } = useAuth(); // ✅ use AuthContext
+  const { setUser } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -22,7 +22,7 @@ const Login = () => {
 
       if (res.status === 200) {
         toast.success("User logged in successfully!");
-        setUser(res.data.user); // ✅ Update user in context
+        setUser(res.data.user);
         navigate("/chat");
       }
     } catch (err) {

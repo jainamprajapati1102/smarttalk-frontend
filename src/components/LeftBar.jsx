@@ -3,7 +3,6 @@ import { FaComments, FaUserFriends, FaUserCircle, FaCog } from "react-icons/fa";
 import { MdGroups } from "react-icons/md";
 import placeholderImg from "../assets/placeholder.png";
 
-
 // Tooltip Wrapper Component
 const TooltipIcon = ({ children, label }) => (
   <div className="relative group cursor-pointer">

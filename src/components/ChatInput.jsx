@@ -168,7 +168,7 @@
 
 // export default ChatInput;
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   HiOutlineDocument,
   HiOutlinePhotograph,
@@ -181,12 +181,12 @@ import {
   HiX,
 } from "react-icons/hi";
 import { FaHeadphones, FaPaperPlane } from "react-icons/fa";
-// import FilePreviewModal from "../components/FilePreviewModal";
-import FilePreviewModal from "../components/FilePrviewModal";
+import FilePreviewModal from "./FilePreviewModal";
 
 const ChatInput = ({ sendMessage, message, setMessage }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef(null);
+
   const [file, setFile] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -195,22 +195,7 @@ const ChatInput = ({ sendMessage, message, setMessage }) => {
   const imageInputRef = useRef(null);
   const audioInputRef = useRef(null);
 
-  const handleFileUpload = (e) => {
-    const selected = e.target.files[0];
-    if (!selected) return;
-
-    setFile(selected);
-    const type = selected.type.startsWith("image")
-      ? "image"
-      : selected.type.startsWith("video")
-      ? "video"
-      : selected.type.startsWith("audio")
-      ? "audio"
-      : "other";
-    setFileType(type);
-    setShowModal(true);
-  };
-
+  // Handle clicks outside the floating menu
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -221,9 +206,62 @@ const ChatInput = ({ sendMessage, message, setMessage }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Detect file type and show preview modal
+  const handleFileUpload = useCallback((e) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    const type = selected.type.startsWith("image")
+      ? "image"
+      : selected.type.startsWith("video")
+      ? "video"
+      : selected.type.startsWith("audio")
+      ? "audio"
+      : "document";
+
+    setFile(selected);
+    setFileType(type);
+    setShowModal(true);
+  }, []);
+
+  const handleSendFile = useCallback(
+    ({ file, caption, fileType }) => {
+      // Send message logic
+      sendMessage({ file, caption, fileType });
+    },
+    [sendMessage]
+  );
+
+  const menuItems = [
+    {
+      label: "Document",
+      icon: <HiOutlineDocument />,
+      action: () => fileInputRef.current.click(),
+    },
+    {
+      label: "Photos & videos",
+      icon: <HiOutlinePhotograph />,
+      action: () => imageInputRef.current.click(),
+    },
+    {
+      label: "Camera",
+      icon: <HiOutlineCamera />,
+      action: () => alert("Camera access not implemented."),
+    },
+    {
+      label: "Audio",
+      icon: <FaHeadphones />,
+      action: () => audioInputRef.current.click(),
+    },
+    { label: "Contact", icon: <HiOutlineUser /> },
+    { label: "Poll", icon: <HiOutlineChartBar /> },
+    { label: "Event", icon: <HiOutlineCalendar /> },
+    { label: "New sticker", icon: <HiOutlinePlusCircle /> },
+  ];
+
   return (
     <div className="relative p-4 mb-5">
-      {/* Hidden Inputs */}
+      {/* Hidden File Inputs */}
       <input
         type="file"
         ref={fileInputRef}
@@ -245,35 +283,14 @@ const ChatInput = ({ sendMessage, message, setMessage }) => {
         onChange={handleFileUpload}
       />
 
-      {/* Floating Menu */}
+      {/* Floating Action Menu */}
       {isMenuOpen && (
         <div
           ref={menuRef}
           className="absolute bottom-16 left-4 bg-white rounded-2xl shadow-lg py-3 w-60 z-50"
         >
           <ul className="text-sm font-medium text-gray-700">
-            {[
-              {
-                label: "Document",
-                icon: <HiOutlineDocument />,
-                action: () => fileInputRef.current.click(),
-              },
-              {
-                label: "Photos & videos",
-                icon: <HiOutlinePhotograph />,
-                action: () => imageInputRef.current.click(),
-              },
-              { label: "Camera", icon: <HiOutlineCamera /> },
-              {
-                label: "Audio",
-                icon: <FaHeadphones />,
-                action: () => audioInputRef.current.click(),
-              },
-              { label: "Contact", icon: <HiOutlineUser /> },
-              { label: "Poll", icon: <HiOutlineChartBar /> },
-              { label: "Event", icon: <HiOutlineCalendar /> },
-              { label: "New sticker", icon: <HiOutlinePlusCircle /> },
-            ].map((item, i) => (
+            {menuItems.map((item, i) => (
               <li
                 key={i}
                 className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 hover:text-blue-600 cursor-pointer transition rounded-md"
@@ -287,11 +304,11 @@ const ChatInput = ({ sendMessage, message, setMessage }) => {
         </div>
       )}
 
-      {/* Chat Input */}
+      {/* Message Input */}
       <div className="flex items-center gap-2 bg-white rounded-full shadow px-4 py-2">
         <span
           className="text-xl text-gray-500 cursor-pointer"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          onClick={() => setIsMenuOpen((prev) => !prev)}
         >
           {isMenuOpen ? <HiX /> : <HiPlus />}
         </span>
@@ -313,18 +330,17 @@ const ChatInput = ({ sendMessage, message, setMessage }) => {
         </button>
       </div>
 
+      {/* File Preview Modal */}
       <FilePreviewModal
-        isOpen={showModal}
         file={file}
         fileType={fileType}
+        isOpen={showModal}
         onClose={() => {
           setShowModal(false);
           setFile(null);
           setFileType(null);
         }}
-        onSend={(data) =>
-          sendMessage({ file: data.file, caption: data.caption, fileType })
-        }
+        onSend={handleSendFile}
       />
     </div>
   );

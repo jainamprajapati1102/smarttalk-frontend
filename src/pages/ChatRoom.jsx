@@ -352,7 +352,8 @@ import {
   MdExpandMore,
 } from "react-icons/md";
 import ModalDelete from "../components/ModalDelete";
-
+import ChatInput from "../components/ChatInput";
+import { formatMessageDate } from "../utils/dateUtils";
 const ChatRoom = () => {
   const [message, setMessage] = useState("");
   const { selectedUser, setSelectedUser } = useChat();
@@ -363,6 +364,15 @@ const ChatRoom = () => {
   const [selectedMsgId, setSelectedMsgId] = useState(null);
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+
+  const groupMessagesByDate = (messages) => {
+    return messages.reduce((groups, msg) => {
+      const date = formatMessageDate(msg.createdAt);
+      if (!groups[date]) groups[date] = [];
+      groups[date].push(msg);
+      return groups;
+    }, {});
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -388,7 +398,7 @@ const ChatRoom = () => {
       };
       fetchMessages();
     }
-  }, [selectedUser]);
+  }, [navigate, selectedUser]);
 
   useEffect(() => {
     const messageContainer = document.querySelector("#message-container");
@@ -509,115 +519,44 @@ const ChatRoom = () => {
         className="flex-1 overflow-y-auto p-4 bg-gray-50"
       >
         {Array.isArray(messages) &&
-          messages.map((msg, idx) => {
-            const isSender = msg.sender_id !== selectedUser._id;
-            return (
-              <div
-                key={idx}
-                className={`relative group max-w-xs md:max-w-md mb-2 p-2 rounded-xl ${
-                  isSender
-                    ? "bg-green-200 self-end ml-auto"
-                    : "bg-white self-start"
-                }`}
-              >
-                <div>{msg.msg}</div>
-                <div className="flex items-center justify-end text-xs text-gray-500 mt-1 relative">
-                  {new Date(msg.createdAt).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                  <button
-                    onClick={() =>
-                      setShowDropdownId((prev) =>
-                        prev === msg._id ? null : msg._id
-                      )
-                    }
-                    className="hidden group-hover:inline-block ml-1"
-                  >
-                    <MdExpandMore size={18} />
-                  </button>
-
-                  {showDropdownId === msg._id && (
-                    <ul
-                      ref={dropdownRef}
-                      className="absolute right-0 top-6 w-44 bg-white border rounded-md shadow-lg text-sm z-30"
-                    >
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("Info")}
-                      >
-                        <MdInfoOutline /> Message Info
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("Reply")}
-                      >
-                        <MdReply /> Reply
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => navigator.clipboard.writeText(msg.msg)}
-                      >
-                        <MdContentCopy /> Copy
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("React")}
-                      >
-                        <MdEmojiEmotions /> React
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("Forward")}
-                      >
-                        <MdForward /> Forward
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("Pin")}
-                      >
-                        <MdPushPin /> Pin
-                      </li>
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => alert("Star")}
-                      >
-                        <MdStarBorder /> Star
-                      </li>
-                      <li className="border-t my-1" />
-                      <li
-                        className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-100 cursor-pointer"
-                        onClick={() => handleDeleteClick(msg._id)}
-                      >
-                        <MdDeleteOutline /> Delete
-                      </li>
-                    </ul>
-                  )}
-                </div>
+          Object.entries(groupMessagesByDate(messages)).map(([date, msgs]) => (
+            <div key={date}>
+              <div className="text-center text-gray-500 text-sm my-3">
+                {date}
               </div>
-            );
-          })}
+              {msgs.map((msg, idx) => {
+                const isSender = msg.sender_id !== selectedUser._id;
+                return (
+                  <div
+                    key={msg._id || idx}
+                    className={`relative group max-w-xs md:max-w-md mb-2 p-2 rounded-xl ${
+                      isSender
+                        ? "bg-green-200 self-end ml-auto"
+                        : "bg-white self-start"
+                    }`}
+                  >
+                    <div>{msg.msg}</div>
+                    <div className="flex items-center justify-end text-xs text-gray-500 mt-1 relative">
+                      {new Date(msg.createdAt).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                      {/* dropdown button & menu here */}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
       </div>
 
       {/* Input */}
       <div className="p-4">
-        <div className="flex items-center gap-2 bg-white rounded-full shadow px-4 py-2">
-          <span className="text-xl text-gray-500">➕</span>
-          <input
-            type="text"
-            placeholder="Type a message"
-            className="flex-1 focus:outline-none text-gray-800 px-2"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button
-            onClick={sendMessage}
-            className="text-blue-600 hover:text-blue-800 ml-2"
-          >
-            <FaPaperPlane size={20} />
-          </button>
-        </div>
+        <ChatInput
+          message={message}
+          setMessage={setMessage}
+          sendMessage={sendMessage}
+        />
       </div>
 
       {/* Delete Modal */}

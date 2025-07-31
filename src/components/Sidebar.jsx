@@ -29,7 +29,7 @@ const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
   // Debounced user search
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
-      if (!search.trim()) return setSearchResult([]);
+      if (!search.trim()) return [];
 
       try {
         const formdata = new FormData();
@@ -80,7 +80,7 @@ const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
   };
 
   const userList = searchResult.length > 0 ? searchResult : chatUsers;
-
+  console.log(userList);
   return (
     <div className="w-[450px] bg-white border-r shadow-sm flex flex-col">
       <Header />
@@ -90,7 +90,8 @@ const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
         <input
           type="text"
           placeholder="Search or start new chat"
-          className="w-full px-3 py-1 rounded-full border text-sm focus:outline-none bg-[#f6f5f4]"
+          className="w-full px-3 py-1 rounded-full border border-gray-300 focus:border-green-500 text-lg focus:outline-none bg-[#f6f5f4]"
+
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -114,50 +115,54 @@ const Sidebar = ({ activeTab, setActiveTab, search, setSearch }) => {
       </div>
 
       {/* Chat List */}
-      <ul className="overflow-y-auto flex-1">
-        {userList.map((item, index) => (
-          <li
-            key={index}
-            ref={(el) => (chatItemRefs.current[index] = el)}
-            className="relative p-4 hover:bg-gray-100 flex items-center gap-4 group"
-          >
-            {/* Profile Pic */}
-            <img
-              src={item.profilePic || placeholderImg}
-              alt="Profile"
-              className="w-10 h-10 rounded-full object-cover"
-            />
+      <div className="overflow-y-auto flex-1">
+        {search.trim() && searchResult.length === 0 ? (
+          <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+            User not found
+          </div>
+        ) : (
+          <ul>
+            {userList.map((item, index) => (
+              <li
+                key={index}
+                ref={(el) => (chatItemRefs.current[index] = el)}
+                className="relative p-4 hover:bg-gray-100 flex items-center gap-4 group"
+              >
+                <img
+                  src={item.profilePic || placeholderImg}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
 
-            {/* Main clickable area */}
-            <div
-              className="flex items-center w-full justify-between cursor-pointer"
-              onClick={() => handleChatClick(item)}
-            >
-              <span>{item?.name || item?.senderName}</span>
-              {item.unseenCount > 0 && (
-                <span className="ml-auto text-sm bg-green-500 text-white px-2 py-0.5 rounded-full">
-                  {item.unseenCount}
-                </span>
-              )}
-            </div>
+                <div
+                  className="flex items-center w-full justify-between cursor-pointer"
+                  onClick={() => handleChatClick(item)}
+                >
+                  <span>{item?.name || item?.senderName}</span>
+                  {item.unseenCount > 0 && (
+                    <span className="ml-auto text-sm bg-green-500 text-white px-2 py-0.5 rounded-full">
+                      {item.unseenCount}
+                    </span>
+                  )}
+                </div>
 
-            {/* Dropdown Icon */}
-            <MdExpandMore
-              className="text-xl ml-2 cursor-pointer hover:text-gray-600"
-              onClick={(e) => handleDropdownClick(e, index)}
-            />
+                <MdExpandMore
+                  className="text-xl ml-2 cursor-pointer hover:text-gray-600"
+                  onClick={(e) => handleDropdownClick(e, index)}
+                />
 
-            {/* Dropdown menu */}
-            {showMenuIndex === index && (
-              <DropdownMenu
-                top={menuPos.top}
-                left={menuPos.left}
-                onClose={() => setShowMenuIndex(null)}
-              />
-            )}
-          </li>
-        ))}
-      </ul>
+                {showMenuIndex === index && (
+                  <DropdownMenu
+                    top={menuPos.top}
+                    left={menuPos.left}
+                    onClose={() => setShowMenuIndex(null)}
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
