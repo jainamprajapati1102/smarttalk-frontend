@@ -5,14 +5,14 @@ import Header from "../components/Header";
 import LeftBar from "../components/LeftBar";
 
 const MainLayout = () => {
-  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState("");
   const [activeTab, setActiveTab] = useState("");
   return (
     <div className="flex flex-row w-full h-screen ">
       <LeftBar />
       <Sidebar
-        setSearch={setSearch}
-        search={search}
+        setSearchOpen={setSearchOpen}
+        searchOpen={searchOpen}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />

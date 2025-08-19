@@ -3,7 +3,7 @@ import { logoutUser } from "../services/userService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useChat } from "../context/SelectedUserContext";
+import { useChat } from "../context/ChatContext";
 import {
   FaUserFriends,
   FaStar,
@@ -12,11 +12,11 @@ import {
 } from "react-icons/fa";
 import GroupAddOutlinedIcon from "@mui/icons-material/GroupAddOutlined";
 
-const Header = () => {
+const Header = ({ setSearchOpen }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const { setUser } = useAuth();
   const navigate = useNavigate();
-  const { setSelectedUser } = useChat();
+  const { setSelectedChat } = useChat();
   const menuRef = useRef(null); // for dropdown
   const buttonRef = useRef(null); // for 3-dot button
 
@@ -44,7 +44,7 @@ const Header = () => {
       if (res.status === 200) {
         toast.success(res.msg || "Logged out successfully");
         setUser(null);
-        setSelectedUser(null);
+        setSelectedChat(null);
         navigate("/login");
       }
     } catch (err) {
@@ -53,21 +53,32 @@ const Header = () => {
     }
   };
 
+  const handleOpenSearch = () => {
+    setSearchOpen(true);
+  };
+
   return (
-    <div className="flex justify-between items-center text-gray-600 p-1">
+    <div className="flex justify-between items-center text-gray-600 p-2 sm:p-3">
       {/* Left side: Title */}
-      <h2 className="text-lg font-semibold text-green-600">SmartTalks</h2>
+      <h2 className="text-base sm:text-lg font-semibold text-green-600 truncate">
+        SmartTalks
+      </h2>
 
       {/* Right side: Add icon and 3-dot menu */}
-      <div className="flex items-center gap-2 relative">
-        <button className="text-black hover:text-green-600 text-[22px]">
-          <GroupAddOutlinedIcon style={{ fontSize: "24px" }} />
+      <div className="flex items-center gap-1 sm:gap-2 relative">
+        <button
+          className="text-black hover:text-green-600 text-lg sm:text-[22px]"
+          onClick={handleOpenSearch}
+        >
+          <GroupAddOutlinedIcon
+            style={{ fontSize: "20px", sm: { fontSize: "24px" } }}
+          />
         </button>
 
         <button
           ref={buttonRef}
           onClick={() => setMenuOpen((prev) => !prev)}
-          className="text-2xl px-2 rounded"
+          className="text-xl sm:text-2xl px-1 sm:px-2 rounded"
         >
           ⋮
         </button>
@@ -75,28 +86,28 @@ const Header = () => {
         {menuOpen && (
           <div
             ref={menuRef}
-            className="absolute right-0 top-10 w-56 p-2 bg-white text-black rounded-2xl shadow-lg z-50"
+            className="absolute right-0 top-8 sm:top-10 w-44 sm:w-56 max-w-[90vw] p-1.5 sm:p-2 bg-white text-black rounded-2xl shadow-lg z-50"
           >
-            <button className="w-full flex items-center gap-3 text-left px-4 py-2 hover:bg-gray-100">
-              <FaUserFriends /> New group
+            <button className="w-full flex items-center gap-2 sm:gap-3 text-left px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-gray-100 text-xs sm:text-sm">
+              <FaUserFriends className="text-base sm:text-lg" /> New group
             </button>
-            <button className="w-full flex items-center gap-3 text-left px-4 py-2 hover:bg-gray-100">
-              <FaStar /> Starred messages
+            <button className="w-full flex items-center gap-2 sm:gap-3 text-left px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-gray-100 text-xs sm:text-sm">
+              <FaStar className="text-base sm:text-lg" /> Starred messages
             </button>
-            <button className="w-full flex items-center gap-3 text-left px-4 py-2 hover:bg-gray-100">
-              <FaCheckSquare /> Select chats
+            <button className="w-full flex items-center gap-2 sm:gap-3 text-left px-3 sm:px-4 py-1.5 sm:py-2 hover:bg-gray-100 text-xs sm:text-sm">
+              <FaCheckSquare className="text-base sm:text-lg" /> Select chats
             </button>
 
-            <div className="border-t my-2"></div>
+            <div className="border-t my-1 sm:my-2"></div>
 
             <button
-              className="w-full flex items-center gap-3 text-left px-4 py-2 rounded-sm hover:text-red-800 hover:bg-red-100"
+              className="w-full flex items-center gap-2 sm:gap-3 text-left px-3 sm:px-4 py-1.5 sm:py-2 rounded-sm hover:text-red-800 hover:bg-red-100 text-xs sm:text-sm"
               onClick={() => {
                 setMenuOpen(false);
                 onLogout();
               }}
             >
-              <FaSignOutAlt /> Log out
+              <FaSignOutAlt className="text-base sm:text-lg" /> Log out
             </button>
           </div>
         )}

@@ -1,11 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../components/Header";
-
+import { io } from "socket.io-client";
+var socket;
 const Home = () => {
   const handleLogout = () => {
-    console.log("User logged out");
+    // console.log("User logged out");
   };
+  const loggedUser = JSON.parse(localStorage.getItem("loggedin"));
+  const [socketConnected, setSocketConnected] = useState(false);
 
+  useEffect(() => {
+    socket = io(import.meta.env.VITE_SOCKET_URI);
+    socket.emit("setup", loggedUser);
+    socket.on("connection", () => setSocketConnected(true));
+  });
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* <Header username="Jay Prajapati" onLogout={handleLogout} /> */}

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { loginUser } from "../services/userService";
+import { auth_check, loginUser } from "../services/userService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+
 const Login = () => {
   const [form, setForm] = useState({ mobile: "" });
   const [message, setMessage] = useState("");
@@ -22,42 +23,57 @@ const Login = () => {
 
       if (res.status === 200) {
         toast.success("User logged in successfully!");
+        localStorage.setItem("loggedin", JSON.stringify(res.data.user));
+        localStorage.setItem("token", res.data.token);
+
         setUser(res.data.user);
         navigate("/chat");
       }
     } catch (err) {
       console.error(err);
-      setMessage("Login failed: " + err.message);
+      setError(err.msg || "Login failed: " + err.message);
+      setMessage("");
     }
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
-      <div className="bg-white p-6 rounded shadow-md w-80 text-center">
-        <h2 className="text-xl font-bold mb-4">Login</h2>
+    <div className="flex justify-center items-center min-h-screen bg-gray-100 px-2 sm:px-4">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-md w-full max-w-[90vw] sm:max-w-md md:max-w-lg text-center">
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4">
+          Login
+        </h2>
+
         <input
           type="text"
           name="mobile"
           placeholder="Enter Mobile Number"
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-2 sm:mb-3 p-2 sm:p-3 border rounded-md text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={form.mobile}
           onChange={handleChange}
         />
 
         <button
-          className="w-full bg-blue-500 text-white p-2 rounded"
+          className="w-full bg-blue-500 text-white p-2 sm:p-3 rounded-md text-sm sm:text-base font-semibold hover:bg-blue-600 transition-colors"
           onClick={handleLogin}
         >
           Login
         </button>
-        <p>
-          <a href="/signup">
-            If you don't have register?{" "}
-            <span className="text-blue-500">Signup</span>
+        <p className="text-xs sm:text-sm mt-2 sm:mt-3">
+          <a href="/signup" className="inline-block">
+            If you don't have an account?{" "}
+            <span className="text-blue-500 hover:underline">Sign up</span>
           </a>
         </p>
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-        {message && <p className="text-green-600 mt-2">{message}</p>}
+        {error && (
+          <p className="text-red-500 text-xs sm:text-sm mt-2 sm:mt-3">
+            {error}
+          </p>
+        )}
+        {message && (
+          <p className="text-green-600 text-xs sm:text-sm mt-2 sm:mt-3">
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
