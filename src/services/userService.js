@@ -2,7 +2,7 @@
 import api from "./api";
 import cookie from "js-cookie";
 
-const token = cookie.get("token");
+const token = localStorage.getItem("token");
 export const signupUser = async (formData) => {
   try {
     const response = await api.post("/user/signup", formData, {
@@ -45,10 +45,10 @@ export const logoutUser = async () => {
 
 export const search_user = async (formdata, tokenn) => {
   try {
-    const response = await api.post("user/search_user", formdata, {
+    const response = await api.post("/user/search_user", formdata, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenn}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;
@@ -62,7 +62,7 @@ export const fetch_chat = async (tokenn) => {
     const response = await api.get("chat/", {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenn}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;

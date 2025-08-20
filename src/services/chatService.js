@@ -1,7 +1,7 @@
 import api from "./api";
 import cookie from "js-cookie";
 
-const token = cookie.get("token");
+const token = localStorage.getItem("token");
 
 export const accessChatService = async (formdata) => {
   try {
