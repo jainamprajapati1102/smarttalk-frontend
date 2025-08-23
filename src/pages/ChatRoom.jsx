@@ -4,14 +4,12 @@ import { useChat } from "../context/ChatContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import placeholderImg from "../assets/placeholder.png";
 import {
-  create_chat_service,
   get_Message_SelectedUser_services,
   msg_delete_me_service,
   msg_seen_service,
   msg_delete_everyone_service,
 } from "../services/messageService";
 import {
-  MdArrowDropDown,
   MdInfoOutline,
   MdReply,
   MdContentCopy,
@@ -22,16 +20,12 @@ import {
   MdDeleteOutline,
   MdExpandMore,
 } from "react-icons/md";
-import cookie from "js-cookie";
 import ModalDelete from "../components/ModalDelete";
 import ChatInput from "../components/ChatInput";
 import { formatMessageDate } from "../utils/dateUtils";
-// import { useSocket } from "../context/SocketContex";
-import { ChatEventEnum } from "../constant";
 import { useSocket } from "../context/SocketContex";
 
 import { getBubbleClass } from "../utils/chatStyles";
-var selectChatCompare;
 const ChatRoom = () => {
   const [message, setMessage] = useState("");
   const { selectedChat, setSelectedChat } = useChat();
@@ -104,6 +98,17 @@ const ChatRoom = () => {
     selectChatCompare = selectedChat;
   }, [navigate, selectedChat]);
 
+  useEffect(() => {
+    // const messageSeenFun=aynsc()=>{
+
+    const messageSeenFun = async () => {
+      const formdata = new FormData();
+      formdata.append("chat_id", selectedChat._id);
+      const response = await msg_seen_service(formdata);
+      if (response.status != 200) console.log("error in msg seen api");
+    };
+    messageSeenFun();
+  }, [selectedChat]);
   // Scroll to bottom when messages change
   useEffect(() => {
     const container = messageContainerRef.current;
@@ -136,9 +141,8 @@ const ChatRoom = () => {
   const deleteForMe = async () => {
     try {
       const formdata = new FormData();
-      formdata.append("login_id", cookie.get("token"));
       formdata.append("msg_id", selectedMsgId);
-      formdata.append("id", selectedChat._id);
+      formdata.append("chat_id", selectedChat._id);
       const res = await msg_delete_me_service(formdata);
       if (res.status === 200) {
         setMessages((prev) => prev.filter((msg) => msg._id !== selectedMsgId));
@@ -154,18 +158,16 @@ const ChatRoom = () => {
   const deleteForEveryone = async () => {
     try {
       const formdata = new FormData();
-      formdata.append("login_id", cookie.get("token"));
       formdata.append("msg_id", selectedMsgId);
-      formdata.append("id", selectedChat._id);
+      formdata.append("chat_id", selectedChat._id);
       const res = await msg_delete_everyone_service(formdata);
       if (res.status === 200) {
         setMessages((prev) => prev.filter((msg) => msg._id !== selectedMsgId));
-
         setShowModal(false);
       }
     } catch (error) {
       console.error("Error deleting message for everyone:", error);
-      alert("Failed to delete message for everyone");
+      // alert("Failed to delete message for everyone"); 
     }
   };
 
@@ -449,6 +451,7 @@ const ChatRoom = () => {
         onDeleteForEveryone={deleteForEveryone}
         onDeleteForMe={deleteForMe}
         msgId={selectedMsgId}
+        chatId={selectedChat}
       />
     </div>
   );

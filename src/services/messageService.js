@@ -2,7 +2,7 @@ import api from "./api";
 import cookie from "js-cookie";
 
 const token = localStorage.getItem("token");
-export const create_chat_service = async (formdata) => {
+export const create_message_service = async (formdata) => {
   try {
     const response = await api.post("message/create_message", formdata, {
       headers: {
@@ -35,6 +35,7 @@ export const msg_seen_service = async (formdata) => {
     const response = await api.post("message/msg_seen", formdata, {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;
@@ -48,6 +49,7 @@ export const msg_delete_me_service = async (formdata) => {
     const response = await api.post("message/msg_delete_me", formdata, {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;
@@ -61,6 +63,7 @@ export const msg_delete_everyone_service = async (formdata) => {
     const response = await api.post("message/msg_delete_all", formdata, {
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;

@@ -18,7 +18,7 @@ const Signup = () => {
       const data = new FormData();
       data.append("name", form.name);
       data.append("mobile", form.mobile);
-      if (profilePic) data.append("profile", profilePic);
+      if (profilePic) data.append("profilePic", profilePic);
 
       const res = await signupUser(data);
 

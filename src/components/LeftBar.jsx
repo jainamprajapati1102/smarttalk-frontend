@@ -4,8 +4,11 @@ import { MdGroups } from "react-icons/md";
 import placeholderImg from "../assets/placeholder.png";
 
 // Tooltip Wrapper Component
-const TooltipIcon = ({ children, label }) => (
-  <div className="relative group cursor-pointer">
+const TooltipIcon = ({ children, label, onClick }) => (
+  <div
+    className="relative group cursor-pointer"
+    onClick={onClick} // ✅ Add this
+  >
     <div className="hover:bg-gray-100 p-1.5 sm:p-2 rounded-full transition-all duration-200 ease-in-out">
       {children}
     </div>
@@ -15,7 +18,7 @@ const TooltipIcon = ({ children, label }) => (
   </div>
 );
 
-const LeftBar = () => {
+const LeftBar = ({ setShowProfile }) => {
   return (
     <div className="w-12 sm:w-16 bg-white border-r flex flex-col items-center py-2 sm:py-4 justify-between">
       {/* Top Icons */}
@@ -54,7 +57,7 @@ const LeftBar = () => {
         <TooltipIcon label="Settings">
           <FaCog className="text-xl sm:text-2xl text-gray-600" />
         </TooltipIcon>
-        <TooltipIcon label="Profile">
+        <TooltipIcon label="Profile" onClick={() => setShowProfile(true)}>
           <img
             src={placeholderImg}
             alt="User"

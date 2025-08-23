@@ -7,8 +7,9 @@ const ModalDelete = ({
   isOpen,
   onClose,
   onDeleteForEveryone,
-  deleteForMe,
+  onDeleteForMe,
   msgId,
+  chatId,
 }) => {
   const modalRef = useRef();
 
@@ -50,7 +51,7 @@ const ModalDelete = ({
           </button>
           <button
             data-id={msgId}
-            onClick={deleteForMe}
+            onClick={onDeleteForMe}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-1.5 sm:py-2 rounded-full text-sm sm:text-base"
           >
             Delete for me

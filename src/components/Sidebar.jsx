@@ -1,19 +1,17 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "./Header";
-import { fetch_chat, search_user } from "../services/userService";
+import { fetch_chat } from "../services/userService";
 import placeholderImg from "../assets/placeholder.png";
 import { useChat } from "../context/ChatContext";
 import { useNavigate } from "react-router-dom";
-import cookie from "js-cookie";
 import { MdExpandMore } from "react-icons/md";
 import DropdownMenu from "./DropDownMenu";
 import { get_sender } from "../config/ChatLogic";
 import SearchUsers from "./SearchUsers";
-import { formatChatTime, formatMessageDate } from "../utils/dateUtils";
+import { formatChatTime } from "../utils/dateUtils";
 
 const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
   const tabs = ["All", "Unread", "Favorites", "Groups"];
-  const [searchResult, setSearchResult] = useState([]);
   const [search, setSearch] = useState("");
   const [chatUsers, setChatUsers] = useState([]);
   const [showMenuIndex, setShowMenuIndex] = useState(null);
@@ -60,7 +58,10 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
   };
 
   const userList = chatUsers;
-
+  const totalUnseenCount = userList.reduce(
+    (sum, chat) => sum + (chat.unseenCount || 0),
+    0
+  );
   return (
     <div className="w-full sm:w-80 md:w-96 lg:w-[450px] bg-white border-r shadow-sm flex flex-col h-screen max-w-full overflow-hidden relative">
       {/* Search Screen */}
@@ -137,7 +138,12 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                   chatData = null;
                   userData = item;
                 }
-
+                const fileBaseURL =
+                  import.meta.env.VITE_API_BASE_URL || "http://localhost:5100";
+                const avtar_url =
+                  avatar === placeholderImg
+                    ? placeholderImg
+                    : `${fileBaseURL}/uploads/user_profile/${avatar}`;
                 return (
                   <li
                     key={item._id || index}
@@ -152,27 +158,11 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                       })
                     }
                   >
-                    {/* <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <img
-                          src={avatar}
-                          alt="Profile"
-                          className="w-8 h-8 rounded-full object-cover"
-                        />
-                      </div>
-                      <span className="truncate">{displayName}</span>
-
-                      {item.unseenCount > 0 && (
-                        <span className="ml-auto mr-2 text-[10px] sm:text-xs md:text-sm bg-green-500 text-white px-1 sm:px-1.5 md:px-2 py-0.5 rounded-full">
-                          {item.unseenCount}
-                        </span>
-                      )}
-                    </div> */}
                     <div className="flex items-center justify-between w-full px-3 py-2 ">
                       {/* Left section: Avatar + Name + Latest Msg */}
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <img
-                          src={avatar}
+                          src={avtar_url}
                           className="w-8 h-8 rounded-full object-cover"
                         />
                         <div className="flex flex-col min-w-0">
@@ -182,7 +172,9 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                           </span>
                           {/* Latest Message */}
                           <span className="text-xs text-gray-500 truncate">
-                            {item.latest_msg?.msg}
+                            {item.latest_msg?.attachments?.length > 0
+                              ? "file"
+                              : item.latest_msg?.msg || ""}
                           </span>
                         </div>
                       </div>

@@ -7,7 +7,7 @@ export const signupUser = async (formData) => {
   try {
     const response = await api.post("/user/signup", formData, {
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "multipart/form-data",
       },
     });
     return response;
@@ -29,14 +29,18 @@ export const loginUser = async (formData) => {
   }
 };
 
-export const logoutUser = async () => {
+export const logoutUser = async (formdata) => {
   try {
-    const response = await api.post("/user/logout", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.post(
+      "/user/logout",
+      {},
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${formdata}`,
+        },
+      }
+    );
     return response;
   } catch (error) {
     throw error.response || { message: "Logout failed" };
@@ -85,3 +89,18 @@ export const auth_check = async (tokenn) => {
     throw error.message;
   }
 };
+
+export const edit_user = async (formdata) => {
+  try {
+    const response = await api.post("user/edit_user", formdata, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response;
+  } catch (error) {
+    throw error.message;
+  }
+};
+ 

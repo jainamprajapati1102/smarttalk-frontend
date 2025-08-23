@@ -40,8 +40,10 @@ const Header = ({ setSearchOpen }) => {
 
   const onLogout = async () => {
     try {
-      const res = await logoutUser();
+      const token = localStorage.getItem("token");
+      const res = await logoutUser(token);
       if (res.status === 200) {
+        localStorage.removeItem("token");
         toast.success(res.msg || "Logged out successfully");
         setUser(null);
         setSelectedChat(null);

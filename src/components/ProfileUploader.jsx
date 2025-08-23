@@ -15,6 +15,7 @@ const ProfileUploader = ({ image, setImage }) => {
         <img
           src={image ? URL.createObjectURL(image) : placeholder}
           alt="Profile Preview"
+          name="profilePic"
           className="object-cover w-full h-full"
         />
       </div>

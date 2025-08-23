@@ -9,15 +9,17 @@ import {
   HiOutlineCalendar,
   HiOutlinePlusCircle,
   HiPlus,
+  HiOutlineEmojiHappy,
   HiX,
 } from "react-icons/hi";
 import { FaHeadphones, FaPaperPlane } from "react-icons/fa";
 import FilePreviewModal from "./FilePreviewModal";
 import cookie from "js-cookie";
-import { create_chat_service } from "../services/messageService";
+import { create_message_service } from "../services/messageService";
 import { ChatEventEnum } from "../constant";
 import { useSocket } from "../context/SocketContex";
-
+import Picker from "@emoji-mart/react";
+import data from "@emoji-mart/data";
 const ChatInput = ({
   message,
   setMessage,
@@ -35,7 +37,8 @@ const ChatInput = ({
   const [fileType, setFileType] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const loggedUser = JSON.parse(localStorage.getItem("loggedin"));
-
+  const [isEmojiOpen, setIsEmojiOpen] = useState(false);
+  const inputRef = useRef(null);
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -72,7 +75,7 @@ const ChatInput = ({
         formdata.append("msg", caption || "");
         formdata.append("attachments", file);
 
-        const chat = await create_chat_service(formdata);
+        const chat = await create_message_service(formdata);
         if (chat.status === 201) {
           const messageData = {
             msg: message,
@@ -107,7 +110,7 @@ const ChatInput = ({
       formdata.append("msg", message);
       formdata.append("chatId", chatId);
 
-      const chat = await create_chat_service(formdata);
+      const chat = await create_message_service(formdata);
       if (chat.status === 201) {
         const messageData = {
           _id: chat.data.message._id,
@@ -117,11 +120,8 @@ const ChatInput = ({
           createdAt: chat.data.message.createdAt,
         };
         if (socket && socket.connected) {
-          console.log("st emit");
           socket.emit("newMessage", messageData);
           setMessages((prev) => [...prev, messageData]);
-
-          console.log("end emit");
         } else {
           console.warn("Socket not connected yet — message not sent.");
         }
@@ -180,9 +180,14 @@ const ChatInput = ({
     { label: "Contact", icon: <HiOutlineUser /> },
     { label: "Poll", icon: <HiOutlineChartBar /> },
     { label: "Event", icon: <HiOutlineCalendar /> },
-    { label: "New sticker", icon: <HiOutlinePlusCircle /> },
+    // { label: "New sticker", icon: <HiOutlinePlusCircle /> },
   ];
 
+  const addEmoji = (emoji) => {
+    setMessage((prev) => prev + emoji.native);
+    setIsEmojiOpen(false);
+    inputRef.current?.focus();
+  };
   return (
     <div className="relative p-2 sm:p-3 md:p-4 mb-4 sm:mb-5">
       <input
@@ -233,7 +238,18 @@ const ChatInput = ({
         >
           {isMenuOpen ? <HiX /> : <HiPlus />}
         </span>
-
+        <span
+          className="text-lg sm:text-xl text-gray-500 cursor-pointer"
+          // onClick={() => console.log("open emoji picker here")}
+          onClick={() => setIsEmojiOpen((prev) => !prev)}
+        >
+          <HiOutlineEmojiHappy />
+        </span>
+        {isEmojiOpen && (
+          <div className="absolute bottom-12 left-10 z-50">
+            <Picker data={data} onEmojiSelect={addEmoji} theme="light" />
+          </div>
+        )}
         <input
           type="text"
           placeholder="Type a message"
