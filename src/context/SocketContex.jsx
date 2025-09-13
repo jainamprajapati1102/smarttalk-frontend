@@ -1,21 +1,73 @@
-// src/context/SocketContext.jsx
+// // SocketContext.jsx
+// import React, { createContext, useContext, useState, useEffect } from "react";
+// import { io } from "socket.io-client";
+// import { useAuth } from "./AuthContext"; // use your AuthContext
+// import { ChatEventEnum } from "../constant.js";
+
+// const SocketContext = createContext(null);
+
+// export const SocketProvider = ({ children }) => {
+//   const { user } = useAuth();
+//   const [socket, setSocket] = useState(null);
+//   const [socketConnected, setSocketConnected] = useState(false);
+
+//   useEffect(() => {
+//     if (!user) return;
+
+//     const token = localStorage.getItem("token");
+//     if (!token) return;
+
+//     const socketInstance = io(import.meta.env.VITE_SOCKET_URI, {
+//       withCredentials: true,
+//       extraHeaders: { Authorization: `Bearer ${token}` },
+//     });
+
+//     setSocket(socketInstance);
+
+//     socketInstance.on(ChatEventEnum.CONNECTED_EVENT, () => {
+//       console.log("Server says: connected");
+//       setSocketConnected(true);
+//     });
+
+//     socketInstance.on(ChatEventEnum.DISCONNECT_EVENT, () => {
+//       console.log("Socket disconnected");
+//       setSocketConnected(false);
+//     });
+
+//     return () => socketInstance.disconnect();
+//   }, [user]); // reconnect when user changes
+
+//   return (
+//     <SocketContext.Provider value={{ socket, socketConnected }}>
+//       {children}
+//     </SocketContext.Provider>
+//   );
+// };
+
+// export const useSocket = () => useContext(SocketContext);
+
+// SocketContext.jsx
+// SocketContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import cookie from "js-cookie";
+import { useAuth } from "./AuthContext";
 import { ChatEventEnum } from "../constant.js";
+
 const SocketContext = createContext(null);
 
 export const SocketProvider = ({ children }) => {
+  const { user } = useAuth();
   const [socket, setSocket] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [typingUsers, setTypingUsers] = useState({}); // { userId: true/false }
 
   useEffect(() => {
+    if (!user) return;
+
     const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("loggedin");
+    if (!token) return;
 
-    if (!token || !userId) return;
-
-    // Create socket connection once
     const socketInstance = io(import.meta.env.VITE_SOCKET_URI, {
       withCredentials: true,
       extraHeaders: { Authorization: `Bearer ${token}` },
@@ -23,34 +75,52 @@ export const SocketProvider = ({ children }) => {
 
     setSocket(socketInstance);
 
-    // socketInstance.on("connection", () => {
-    //   console.log("Socket connected:", socketInstance.id);
-    //   socketInstance.emit("setup", userId._id);
-    // });
-
     socketInstance.on(ChatEventEnum.CONNECTED_EVENT, () => {
-      console.log("Server says: connected");
+      console.log("✅ Connected to server");
       setSocketConnected(true);
     });
 
     socketInstance.on(ChatEventEnum.DISCONNECT_EVENT, () => {
-      console.log("Socket disconnected");
+      console.log("❌ Socket disconnected");
       setSocketConnected(false);
     });
 
-    
-    // Cleanup
-    return () => {
-      socketInstance.disconnect();
-    };
-  }, []); // Run only once when provider mounts
+    // --- Online Users ---
+    socketInstance.on("online-users", (users) => {
+      setOnlineUsers(new Set(users));
+    });
+
+    socketInstance.on("user-online", (userId) => {
+      setOnlineUsers((prev) => new Set(prev).add(userId));
+    });
+
+    socketInstance.on("user-offline", (userId) => {
+      setOnlineUsers((prev) => {
+        const copy = new Set(prev);
+        copy.delete(userId);
+        return copy;
+      });
+    });
+
+    // --- Typing Events ---
+    socketInstance.on("user-typing", (userId) => {
+      setTypingUsers((prev) => ({ ...prev, [userId]: true }));
+    });
+
+    socketInstance.on("user-stop-typing", (userId) => {
+      setTypingUsers((prev) => ({ ...prev, [userId]: false }));
+    });
+
+    return () => socketInstance.disconnect();
+  }, [user]);
 
   return (
-    <SocketContext.Provider value={{ socket, socketConnected }}>
+    <SocketContext.Provider
+      value={{ socket, socketConnected, onlineUsers, typingUsers }}
+    >
       {children}
     </SocketContext.Provider>
   );
 };
 
-// ✅ Custom hook
 export const useSocket = () => useContext(SocketContext);

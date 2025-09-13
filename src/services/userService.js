@@ -1,6 +1,5 @@
 // services/userService.js
 import api from "./api";
-import cookie from "js-cookie";
 
 const token = localStorage.getItem("token");
 export const signupUser = async (formData) => {
@@ -37,7 +36,7 @@ export const logoutUser = async (formdata) => {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${formdata}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
@@ -47,7 +46,7 @@ export const logoutUser = async (formdata) => {
   }
 };
 
-export const search_user = async (formdata, tokenn) => {
+export const search_user = async (formdata) => {
   try {
     const response = await api.post("/user/search_user", formdata, {
       headers: {
@@ -61,27 +60,13 @@ export const search_user = async (formdata, tokenn) => {
   }
 };
 
-export const fetch_chat = async (tokenn) => {
-  try {
-    const response = await api.get("chat/", {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response;
-  } catch (error) {
-    // console.log(error);
-    throw error.message || { msg: "Error In exist msg" };
-  }
-};
 
 export const auth_check = async (tokenn) => {
   try {
     const response = await api.get("user/authCheck", {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenn}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response;
@@ -103,4 +88,3 @@ export const edit_user = async (formdata) => {
     throw error.message;
   }
 };
- 

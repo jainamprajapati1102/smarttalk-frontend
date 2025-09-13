@@ -16,6 +16,7 @@ import { FaHeadphones, FaPaperPlane } from "react-icons/fa";
 import FilePreviewModal from "./FilePreviewModal";
 import cookie from "js-cookie";
 import { create_message_service } from "../services/messageService";
+import { fetch_chat } from "../services/chatService";
 import { ChatEventEnum } from "../constant";
 import { useSocket } from "../context/SocketContex";
 import Picker from "@emoji-mart/react";
@@ -24,6 +25,7 @@ const ChatInput = ({
   message,
   setMessage,
   sendMessage,
+  handleTyping,
   selectedChat,
   setMessages,
 }) => {
@@ -122,6 +124,7 @@ const ChatInput = ({
         if (socket && socket.connected) {
           socket.emit("newMessage", messageData);
           setMessages((prev) => [...prev, messageData]);
+          await fetch_chat();
         } else {
           console.warn("Socket not connected yet — message not sent.");
         }
@@ -188,6 +191,7 @@ const ChatInput = ({
     setIsEmojiOpen(false);
     inputRef.current?.focus();
   };
+
   return (
     <div className="relative p-2 sm:p-3 md:p-4 mb-4 sm:mb-5">
       <input
@@ -255,7 +259,10 @@ const ChatInput = ({
           placeholder="Type a message"
           className="flex-1 focus:outline-none text-gray-800 text-sm sm:text-base px-1 sm:px-2"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => {
+            setMessage(e.target.value);
+            handleTyping();
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleSendText()}
         />
 

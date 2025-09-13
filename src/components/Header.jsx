@@ -60,7 +60,7 @@ const Header = ({ setSearchOpen }) => {
   };
 
   return (
-    <div className="flex justify-between items-center text-gray-600 p-2 sm:p-3">
+    <div className="flex justify-between items-center text-gray-600 p-1 sm:p-2">
       {/* Left side: Title */}
       <h2 className="text-base sm:text-lg font-semibold text-green-600 truncate">
         SmartTalks

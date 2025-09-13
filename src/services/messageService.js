@@ -1,6 +1,4 @@
 import api from "./api";
-import cookie from "js-cookie";
-
 const token = localStorage.getItem("token");
 export const create_message_service = async (formdata) => {
   try {
@@ -16,14 +14,20 @@ export const create_message_service = async (formdata) => {
   }
 };
 
-export const get_Message_SelectedUser_services = async (chatId, tokenn) => {
+export const get_Message_SelectedUser_services = async (
+  chatId,
+  { skip = 0, limit = 20 }
+) => {
   try {
-    const response = await api.get(`message/${chatId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${tokenn}`,
-      },
-    });
+    const response = await api.get(
+      `message/${chatId}/?page=${skip}&limit=${limit}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response;
   } catch (error) {
     throw error.message || { msg: "Error In fetch select user message" };

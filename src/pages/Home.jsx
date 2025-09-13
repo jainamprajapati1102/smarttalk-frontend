@@ -1,22 +1,20 @@
-import React, { useEffect, useState } from "react";
-import Header from "../components/Header";
-import { io } from "socket.io-client";
-var socket;
-const Home = () => {
-  const handleLogout = () => {
-    // console.log("User logged out");
-  };
-  const loggedUser = JSON.parse(localStorage.getItem("loggedin"));
-  const [socketConnected, setSocketConnected] = useState(false);
+import React from "react";
+import { useSocket } from "../context/SocketContex";
+import { useAuth } from "../context/AuthContext";
 
-  useEffect(() => {
-    socket = io(import.meta.env.VITE_SOCKET_URI);
-    socket.emit("setup", loggedUser);
-    socket.on("connection", () => setSocketConnected(true));
-  });
+const Home = () => {
+  const { onlineUsers } = useSocket();
+  const { user } = useAuth();
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      {/* <Header username="Jay Prajapati" onLogout={handleLogout} /> */}
+      {/* Show socket status */}
+      <div className="p-2 text-center text-sm text-gray-600">
+        {onlineUsers.includes(user._id) ? (
+          <span className="text-green-600">Connected</span>
+        ) : (
+          <span className="text-red-600">🔴 Disconnected</span>
+        )}
+      </div>
 
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
         {/* Centered SVG Content */}

@@ -2,7 +2,7 @@ import React from "react";
 import { FaComments, FaUserFriends, FaUserCircle, FaCog } from "react-icons/fa";
 import { MdGroups } from "react-icons/md";
 import placeholderImg from "../assets/placeholder.png";
-
+import { useUserChat } from "../context/UserChatContext";
 // Tooltip Wrapper Component
 const TooltipIcon = ({ children, label, onClick }) => (
   <div
@@ -19,6 +19,11 @@ const TooltipIcon = ({ children, label, onClick }) => (
 );
 
 const LeftBar = ({ setShowProfile }) => {
+  const { userChat } = useUserChat();
+  const totalUnseen = userChat?.reduce(
+    (sum, chat) => sum + (chat.unseenCount || 0),
+    0
+  );
   return (
     <div className="w-12 sm:w-16 bg-white border-r flex flex-col items-center py-2 sm:py-4 justify-between">
       {/* Top Icons */}
@@ -27,9 +32,14 @@ const LeftBar = ({ setShowProfile }) => {
         <TooltipIcon label="Chats">
           <div className="relative">
             <FaComments className="text-lg sm:text-xl text-gray-700" />
-            <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[8px] sm:text-xs rounded-full px-0.5 sm:px-1">
-              1
-            </span>
+            {totalUnseen > 0 && (
+              <span
+                className="absolute -top-1 -right-1 bg-green-500 text-white 
+                       text-[8px] sm:text-xs rounded-full px-0.5 sm:px-1"
+              >
+                {totalUnseen}
+              </span>
+            )}
           </div>
         </TooltipIcon>
 

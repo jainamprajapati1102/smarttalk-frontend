@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+// Sidebar.jsx
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Header from "./Header";
-import { fetch_chat } from "../services/userService";
+import { fetch_chat } from "../services/chatService";
 import placeholderImg from "../assets/placeholder.png";
 import { useChat } from "../context/ChatContext";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,11 @@ import DropdownMenu from "./DropDownMenu";
 import { get_sender } from "../config/ChatLogic";
 import SearchUsers from "./SearchUsers";
 import { formatChatTime } from "../utils/dateUtils";
+import { FaHeart } from "react-icons/fa";
+import { useUserChat } from "../context/UserChatContext";
+import { useSocket } from "../context/SocketContex";
+import { msg_seen_service } from "../services/messageService";
+import { useAuth } from "../context/AuthContext"; // ✅ import auth
 
 const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
   const tabs = ["All", "Unread", "Favorites", "Groups"];
@@ -16,30 +22,52 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
   const [chatUsers, setChatUsers] = useState([]);
   const [showMenuIndex, setShowMenuIndex] = useState(null);
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 });
-  const { setSelectedChat } = useChat();
+  const { selectedChat, setSelectedChat } = useChat();
   const navigate = useNavigate();
-  const loggedUser = JSON.parse(localStorage.getItem("loggedin"));
+  const { setUserChat } = useUserChat();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const limit = 10;
+  const { socket } = useSocket();
+
+  // ✅ get logged user + token from context
+  const { user: loggedUser, token } = useAuth();
+
+  // listen for new messages
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("newMessage", (msg) => {
+      if (msg.sender._id === loggedUser?._id) return;
+
+      setChatUsers((prevChats) =>
+        prevChats.map((chat) => {
+          if (chat._id === msg.chat._id) {
+            if (chat._id !== selectedChat?._id) {
+              return {
+                ...chat,
+                latest_msg: msg,
+                unseenCount: (chat.unseenCount || 0) + 1,
+              };
+            } else {
+              return { ...chat, latest_msg: msg };
+            }
+          }
+          return chat;
+        })
+      );
+    });
+
+    return () => {
+      socket.off("newMessage");
+    };
+  }, [socket, loggedUser, selectedChat]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setShowMenuIndex(null);
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  // Load chat users on mount
-  useEffect(() => {
-    const tokenn = localStorage.getItem("token");
-    const fetchChats = async () => {
-      try {
-        await fetch_chat(tokenn).then((response) => {
-          if (response.data) setChatUsers(response.data);
-        });
-      } catch (err) {
-        console.error("Error loading chats:", err);
-      }
-    };
-    fetchChats();
   }, []);
 
   const handleDropdownClick = (e, index) => {
@@ -52,16 +80,87 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
     setShowMenuIndex(index);
   };
 
-  const handleChatClick = (data) => {
+  const handleChatClick = async (data) => {
     setSelectedChat(data.chat);
-    navigate("/chat", { state: { user: data.user, chat: data.chat } });
+
+    setChatUsers((prevChats) =>
+      prevChats.map((chat) =>
+        chat._id === data.chat._id ? { ...chat, unseenCount: 0 } : chat
+      )
+    );
+
+    if (token) {
+      const formdata = new FormData();
+      formdata.append("chat_id", data.chat._id);
+      const response = await msg_seen_service(formdata, token); // ✅ pass token
+      if (response.status === 200) {
+        navigate("/chat", { state: { user: data.user, chat: data.chat } });
+      }
+    }
   };
 
-  const userList = chatUsers;
-  const totalUnseenCount = userList.reduce(
-    (sum, chat) => sum + (chat.unseenCount || 0),
-    0
+  // filter chats by tabs
+  const filteredChats = useMemo(() => {
+    switch (activeTab) {
+      case "Unread":
+        return chatUsers.filter((chat) => chat.unseenCount > 0);
+      case "Favorites":
+        return chatUsers.filter((chat) => chat.is_favorite);
+      case "Groups":
+        return chatUsers.filter((chat) => chat.is_group);
+      default:
+        return chatUsers;
+    }
+  }, [activeTab, chatUsers]);
+
+  // ✅ load chats with token
+  const loadChats = useCallback(
+    async (newPage) => {
+      if (!hasMore || !token) return;
+
+      try {
+        const response = await fetch_chat(newPage, limit, token);
+
+        if (response.data && response.data.length > 0) {
+          setHasMore(response.data.length === limit);
+
+          if (newPage === 1) {
+            setChatUsers(response.data);
+            setUserChat(response.data);
+          } else {
+            setChatUsers((prev) => [...prev, ...response.data]);
+            setUserChat((prev) => [...(prev || []), ...response.data]);
+          }
+        } else {
+          setHasMore(false);
+        }
+      } catch (err) {
+        setHasMore(false);
+        console.error("Error loading chats:", err);
+      }
+    },
+    [hasMore, setUserChat, token]
   );
+
+  useEffect(() => {
+    if (token) {
+      loadChats(1);
+    }
+  }, [loadChats, token]);
+
+  useEffect(() => {
+    if (page > 1 && token) {
+      loadChats(page);
+    }
+  }, [loadChats, page, token]);
+
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    if (scrollHeight - scrollTop <= clientHeight + 50 && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   return (
     <div className="w-full sm:w-80 md:w-96 lg:w-[450px] bg-white border-r shadow-sm flex flex-col h-screen max-w-full overflow-hidden relative">
       {/* Search Screen */}
@@ -110,14 +209,17 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
         </div>
 
         {/* Chat List */}
-        <div className="overflow-y-auto flex-1">
-          {userList.length === 0 ? (
+        <div
+          className="overflow-y-auto flex-1 max-h-[calc(100vh-180px)]"
+          onScroll={handleScroll}
+        >
+          {filteredChats.length === 0 ? (
             <div className="flex items-center justify-center h-full text-gray-500 text-xs sm:text-sm">
               No chats found
             </div>
           ) : (
             <ul>
-              {userList.map((item, index) => {
+              {filteredChats.map((item, index) => {
                 const isChat = Array.isArray(item.users);
                 const isGroup = isChat && item.is_group;
 
@@ -138,12 +240,14 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                   chatData = null;
                   userData = item;
                 }
+
                 const fileBaseURL =
                   import.meta.env.VITE_API_BASE_URL || "http://localhost:5100";
-                const avtar_url =
+                const avatar_url =
                   avatar === placeholderImg
                     ? placeholderImg
                     : `${fileBaseURL}/uploads/user_profile/${avatar}`;
+
                 return (
                   <li
                     key={item._id || index}
@@ -159,18 +263,16 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                     }
                   >
                     <div className="flex items-center justify-between w-full px-3 py-2 ">
-                      {/* Left section: Avatar + Name + Latest Msg */}
+                      {/* Left section */}
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <img
-                          src={avtar_url}
-                          className="w-8 h-8 rounded-full object-cover"
+                          src={avatar_url}
+                          className="w-12 h-12 rounded-full object-cover"
                         />
                         <div className="flex flex-col min-w-0">
-                          {/* Chat Name */}
                           <span className="font-medium text-sm truncate">
                             {displayName}
                           </span>
-                          {/* Latest Message */}
                           <span className="text-xs text-gray-500 truncate">
                             {item.latest_msg?.attachments?.length > 0
                               ? "file"
@@ -179,14 +281,14 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                         </div>
                       </div>
 
-                      {/* Right section: Time + Unseen Count */}
+                      {/* Right section */}
                       <div className="flex flex-col items-end ml-2">
-                        {/* Time */}
                         <span className="text-[10px] text-green-500">
                           {formatChatTime(item.latest_msg?.createdAt)}
                         </span>
-
-                        {/* Unseen Count */}
+                        {item.is_favorite && (
+                          <FaHeart className="text-red-500" />
+                        )}
                         {item.unseenCount > 0 && (
                           <span className="mt-1 text-[10px] sm:text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
                             {item.unseenCount}
@@ -194,7 +296,8 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                         )}
                       </div>
                     </div>
-                    {/* Dropdown Icon */}
+
+                    {/* Dropdown */}
                     <MdExpandMore
                       className="ml-auto text-base sm:text-lg md:text-xl cursor-pointer hover:text-gray-600"
                       onClick={(e) => {
@@ -202,8 +305,6 @@ const Sidebar = ({ activeTab, setActiveTab, setSearchOpen, searchOpen }) => {
                         handleDropdownClick(e, index);
                       }}
                     />
-
-                    {/* Dropdown Menu */}
                     {showMenuIndex === index && (
                       <DropdownMenu
                         top={menuPos.top}

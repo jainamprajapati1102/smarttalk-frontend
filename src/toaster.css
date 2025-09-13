@@ -1,0 +1,28 @@
+/* toast.css */
+.Toastify__toast-container {
+    width: 100%; /* full width on small devices */
+    max-width: 600px; /* cap width on larger screens */
+    padding: 0 10px; /* prevent touching screen edges */
+    box-sizing: border-box;
+  }
+  
+  .Toastify__toast {
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+  
+  /* Mobile devices */
+  @media (max-width: 480px) {
+    .Toastify__toast {
+      font-size: 0.85rem;
+      padding: 10px;
+    }
+  }
+  
+  /* Tablets */
+  @media (min-width: 481px) and (max-width: 1024px) {
+    .Toastify__toast {
+      font-size: 0.9rem;
+    }
+  }
+  

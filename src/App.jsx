@@ -10,6 +10,9 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GuestRoute from "./routes/GuestRoute.jsx";
 import ProtectedRoute from "./routes/ProtectedRoutes.jsx";
+import "react-toastify/dist/ReactToastify.css";
+import "./toaster.css"; // custom responsive styles
+
 function App() {
   return (
     <Router>

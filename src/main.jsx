@@ -5,14 +5,17 @@ import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
 import { ChatProvider } from "./context/ChatContext";
 import { SocketProvider } from "./context/SocketContex";
+import { UserChatProvider } from "./context/UserChatContext";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <ChatProvider>
-      <AuthProvider>
-        <SocketProvider>
-          <App />
-        </SocketProvider>
-      </AuthProvider>
-    </ChatProvider>
+    <AuthProvider>
+      <UserChatProvider>
+        <ChatProvider>
+          <SocketProvider>
+            <App />
+          </SocketProvider>
+        </ChatProvider>
+      </UserChatProvider>
+    </AuthProvider>
   </React.StrictMode>
 );
