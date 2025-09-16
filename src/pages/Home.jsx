@@ -9,11 +9,11 @@ const Home = () => {
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Show socket status */}
       <div className="p-2 text-center text-sm text-gray-600">
-        {onlineUsers.includes(user._id) ? (
+        {/* {onlineUsers.includes(user._id) ? (
           <span className="text-green-600">Connected</span>
         ) : (
           <span className="text-red-600">🔴 Disconnected</span>
-        )}
+        )} */}
       </div>
 
       <div className="flex-1 flex items-center justify-center p-4 overflow-hidden">
