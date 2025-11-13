@@ -100,7 +100,7 @@ import ProfileUploader from "../components/ProfileUploader";
 import { signupUser } from "../services/userService";
 import { toast } from "react-toastify";
 
- const  Signup=()=> {
+const Signup = () => {
   const [form, setForm] = useState({ name: "", mobile: "" });
   const [profilePic, setProfilePic] = useState(null);
   const [error, setError] = useState("");
@@ -123,7 +123,8 @@ import { toast } from "react-toastify";
 
   const isValidMobile = (val) => {
     const v = (val || "").trim();
-    return /^\+?91?\d{10}$/.test(v);
+    // return /^\+?91?\d{10}$/.test(v);
+    return /^\d{10}$/.test(v);
   };
 
   const handleSubmit = async (e) => {
@@ -159,12 +160,14 @@ import { toast } from "react-toastify";
         // small delay so user sees message (optional), then redirect
         setTimeout(() => navigate("/login", { replace: true }), 900);
       } else {
-        const serverMsg = res?.data?.msg || res?.data?.message || "Something went wrong";
+        const serverMsg =
+          res?.data?.msg || res?.data?.message || "Something went wrong";
         setError(serverMsg);
         toast.error(serverMsg);
       }
     } catch (err) {
-      const serverMsg = err?.response?.data?.msg || err?.response?.data?.message;
+      const serverMsg =
+        err?.response?.data?.msg || err?.response?.data?.message;
       setError(serverMsg || err.message || "Signup failed");
       toast.error(serverMsg || "Signup failed");
       console.error("Signup error:", err);
@@ -184,7 +187,9 @@ import { toast } from "react-toastify";
           <ProfileUploader image={profilePic} setImage={setProfilePic} />
         </div>
 
-        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center">Sign Up</h2>
+        <h2 className="text-lg sm:text-xl md:text-2xl font-bold mb-3 sm:mb-4 text-center">
+          Sign Up
+        </h2>
 
         <input
           name="name"
@@ -221,19 +226,24 @@ import { toast } from "react-toastify";
 
         <p className="text-xs sm:text-sm mt-2 sm:mt-3 text-center">
           <Link to="/login" className="inline-block">
-            If you have already registered? <span className="text-blue-500 hover:underline">Sign in</span>
+            If you have already registered?{" "}
+            <span className="text-blue-500 hover:underline">Sign in</span>
           </Link>
         </p>
 
         {error && (
-          <p className="text-red-500 text-xs sm:text-sm mt-2 sm:mt-3 text-center">{error}</p>
+          <p className="text-red-500 text-xs sm:text-sm mt-2 sm:mt-3 text-center">
+            {error}
+          </p>
         )}
 
         {message && (
-          <p className="text-green-600 text-xs sm:text-sm mt-2 sm:mt-3 text-center">{message}</p>
+          <p className="text-green-600 text-xs sm:text-sm mt-2 sm:mt-3 text-center">
+            {message}
+          </p>
         )}
       </form>
     </div>
   );
-}
-export default Signup
+};
+export default Signup;

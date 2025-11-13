@@ -1,5 +1,3 @@
-
-
 // import { toast } from "react-toastify";
 // import { useNavigate } from "react-router-dom";
 // import { useAuth } from "../context/AuthContext";
@@ -103,22 +101,19 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, user: currentUser } = useAuth();
 
-  
   useEffect(() => {
     if (currentUser) navigate("/", { replace: true });
   }, [currentUser, navigate]);
 
   const handleChange = (e) => {
-    
     const value = e.target.value.replace(/[^0-9+]/g, "");
     setForm((p) => ({ ...p, [e.target.name]: value }));
     setError("");
   };
 
-  
   const isValidMobile = (val) => {
     const v = (val || "").trim();
-    return /^\+?91?\d{10}$/.test(v);
+    return /^\d{10}$/.test(v);
   };
 
   const handleSubmit = async (e) => {
@@ -133,24 +128,20 @@ const Login = () => {
 
     try {
       const data = new FormData();
-      
+
       const normalized = form.mobile.replace(/^\+?91/, "");
       data.append("mobile", normalized);
 
       const res = await loginUser(data);
 
-      
       if (res?.status === 200) {
         const { user, token } = res.data;
-        login(user, token); 
+        login(user, token);
         toast.success("User logged in successfully!");
-        
       } else {
-        
         setError(res?.data?.msg || "Login failed. Please try again.");
       }
     } catch (err) {
-      
       const serverMsg =
         err?.response?.data?.msg || err?.response?.data?.message;
       setError(serverMsg || err.message || "Login failed");
