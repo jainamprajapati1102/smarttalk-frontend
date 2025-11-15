@@ -9,9 +9,9 @@ const TitleUpdater = () => {
   );
   useEffect(() => {
     if (totalUnseen > 0) {
-      document.title = `(${totalUnseen}) SmartTalks`;
+      document.title = `(${totalUnseen}) sanvad`;
     } else {
-      document.title = "SmartTalks";
+      document.title = "sanvad";
     }
   }, [totalUnseen]);
 
