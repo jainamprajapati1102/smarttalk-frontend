@@ -1,4 +1,3 @@
-// services/userService.js
 import api from "./api";
 
 const token = localStorage.getItem("token");
