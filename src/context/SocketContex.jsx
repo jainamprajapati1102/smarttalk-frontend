@@ -47,7 +47,6 @@
 // export const useSocket = () => useContext(SocketContext);
 
 // SocketContext.jsx
-// SocketContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useAuth } from "./AuthContext";
@@ -69,14 +68,17 @@ export const SocketProvider = ({ children }) => {
     if (!token) return;
 
     const socketInstance = io(import.meta.env.VITE_SOCKET_URI, {
+      path: "/socket.io", // keep if server uses default path
+      transports: ["websocket", "polling"],
+      auth: { token }, // <-- send token here (browser-safe)
       withCredentials: true,
-      extraHeaders: { Authorization: `Bearer ${token}` },
+      reconnectionAttempts: 5,
     });
 
     setSocket(socketInstance);
 
     socketInstance.on(ChatEventEnum.CONNECTED_EVENT, () => {
-      console.log("✅ Connected to server");
+      console.log("✅ Connected to server client-side");
       setSocketConnected(true);
     });
 
